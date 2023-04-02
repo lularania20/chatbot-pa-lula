@@ -1,0 +1,5 @@
+{
+    "nilai" : "nilai semester berapa yang ingin anda tampilkan ? \n*(masukkan 'semua semester' jika ingin menampilkan nilai seluruh semester)",
+    "jadwal" : "jadwal kuliah semester berapa yang ingin anda tampilkan ? \n*(masukkan 'semua semester' jika ingin menampilkan jadwal kuliah seluruh semester)",
+    "rekap presensi" : "rekap presensi semester berapa yang ingin anda tampilkan ? \n*(masukkan 'semua semester' jika ingin menampilkan rekap presensi seluruh semester)"
+}
