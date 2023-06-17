@@ -1,72 +1,87 @@
-from telebot import *
+from telebot import TeleBot
 import re
 import random
-import telebot
 
-api = '5994491197:AAFEhWxSNOSGs8jOTEcZf4-hqnvRvKsjPdE'
-bot = TeleBot(api)
+# API key Telegram Bot
+api_key = '5994491197:AAFEhWxSNOSGs8jOTEcZf4-hqnvRvKsjPdE'
 
+# Membuat instance TeleBot
+bot = TeleBot(api_key)
 
-# Dataset gejala dan diagnosis
-dataset = {
-    'cemas ' : 'OCD',
-    'capek': 'gangguan kecemasan',
-    'gejala3': 'diagnosis3',
-    # dan seterusnya
+# Basis pengetahuan
+basis_pengetahuan = {
+    'Muntah': {
+        'Bulimia Nervosa': 0.7,
+        'Anoreksia Nervosa': 0.3,
+    },
+    'Kelaparan': {
+        'Bulimia Nervosa': 0.2,
+        'Anoreksia Nervosa': 0.8,
+    },
+    'Menstruasi': {
+        'Bulimia Nervosa': 0.4,
+        'Anoreksia Nervosa': 0.6,
+    },
+    'Makan Berlebihan' : {
+        'Bulimia Nervosa': 0.9,
+        'Anoreksia Nervosa': 0.1,
+    },
+    'Diare' : {
+        'Bulimia Nervosa': 0.1,
+        'Anoreksia Nervosa': 0.9,
+    }
 }
 
-# Aturan-aturan berdasarkan gejala
-aturan = {
-    'cemas': ['OCD'],
-    'gejala2': ['diagnosis2'],
-    'gejala3': ['diagnosis3'],
-    'cemas+ capek': ['gangguan kecemasan'],
-    'gejala1+gejala3': ['diagnosis5'],
-    # dan seterusnya
+# Aturan inferensi
+aturan_inferensi = {
+    'Bulimia Nervosa': ['Muntah', 'Kelaparan', 'Menstruasi', 'Makan Berlebihan'],
+    'Anoreksia Nervosa': ['Muntah', 'Kelaparan', 'Menstruasi', 'Diare'],
 }
 
-# start
-@bot.message_handler(commands=['start'])
-def selamat_datang(message):
-    name = message.from_user.full_name
-    bot.reply_to(message, f"Selamat Datang {name} di Chatbot Layanan Konseling Politeknik Elektronika Negeri Surabaya")
-    markup = types.ReplyKeyboardMarkup()
-    item1 = types.KeyboardButton('/start')
-    item2 = types.KeyboardButton('/informasi')
-    item3 = types.KeyboardButton('/diagnosis')
-    item4 = types.KeyboardButton('/profile')
-    markup.row(item1,item2)
-    markup.row(item3, item4)
-    
-    # chatid = message.chat.id
-    bot.reply_to(message, 'Pilih Opsi Terkait Layanan Chatbot Konseling', reply_markup=markup)
-    #                  '1. Sistem Diagnosis Kesehatan Mental \n'
-    #                  '2. Sistem Informasi Kesehatan Mental')
-    #bot.send_message(chatid, 'Terimakasih telah mengakses chatbot layanan konsultasi PENS. Apakah anda memiliki permasalahan, keluhan atau hal hal yang menjadi concern dalam masalah kesehatan mental anda? Silahkan sharing terkait apa yang sedang anda alami dan gejala yang anda rasakan.')
+# Fungsi forward chaining
+def forward_chaining(input_gejala):
+    solusi = {}
+    for gejala in input_gejala:
+        if gejala in basis_pengetahuan:
+            for penyakit, bobot in basis_pengetahuan[gejala].items():
+                if penyakit not in solusi:
+                    solusi[penyakit] = 0
+                solusi[penyakit] += bobot
+    for penyakit, daftar_gejala in aturan_inferensi.items():
+        if all(gejala in input_gejala for gejala in daftar_gejala) and penyakit not in solusi:
+            solusi[penyakit] = 1
+    return solusi
 
-# Fungsi untuk mencari diagnosis berdasarkan gejala
-@bot.message_handler(commands=['diagnosis'])
-def diagnosis(message) :
-    bot.reply_to(message, 'Terimakasih telah mengakses chatbot layanan konsultasi PENS. Apakah anda memiliki permasalahan, keluhan atau hal hal yang menjadi concern dalam masalah kesehatan mental anda? Silahkan sharing terkait apa yang sedang anda alami dan gejala yang anda rasakan.')
-def cari_diagnosis(gejala):
-    diagnosis = []
-    for k in aturan:
-        if all(g in gejala for g in k.split('+')):
-            diagnosis += aturan[k]
-    return diagnosis
-
-# Fungsi untuk menangani pesan dari pengguna
-@bot.message_handler(func=lambda message: True)
-def handle_message(message): 
-    # Mendapatkan gejala dari pesan pengguna
-    gejala = message.text.lower()
-    # Mencari diagnosis berdasarkan gejala
-    hasil_diagnosis = cari_diagnosis(gejala)
-    # Memberikan respons ke pengguna
-    if hasil_diagnosis:
-        bot.reply_to(message, 'Diagnosis yang mungkin terjadi: {}'.format(', '.join(hasil_diagnosis)))
+# Fungsi untuk menampilkan hasil deteksi penyakit
+def tampilkan_hasil(solusi):
+    if not solusi:
+        return "Tidak ada penyakit yang terdeteksi."
     else:
-        bot.reply_to(message, 'Maaf, tidak dapat menemukan diagnosis yang sesuai dengan gejala yang diberikan.')
+        penyakit_terdeteksi = max(solusi, key=solusi.get)
+        gejala_umum = "Gejala Umum : \n"
+        if penyakit_terdeteksi == 'Bulimia Nervosa':
+            gejala_umum += "makan berlebihan, menyakiti diri sendiri, muntah, kelaparan, Sakit tenggorokan, pembengkakan pada wajah atau kelenjar di rahang, gangguan siklus, menstruasi, gemuk"
+        elif penyakit_terdeteksi == 'Anoreksia Nervosa':
+            gejala_umum += "penurunan berat badan, muntah, diare, melakukan diet, kulit kering, rambut rontok, lemas, gangguan siklus menstruasi, sangat kurus"
+        penanganan = "Penanganan: \n"
+        if penyakit_terdeteksi == 'Bulimia Nervosa':
+            penanganan += "Konseling dan terapi."
+        elif penyakit_terdeteksi == 'Anoreksia Nervosa':
+            penanganan += "Terapi perilaku kognitif."
+        return f"Penyakit yang terdeteksi: {penyakit_terdeteksi}\n\n{gejala_umum}\n\n{penanganan}"
+
+# Handler untuk command "/start"
+@bot.message_handler(commands=['start'])
+def send_welcome(message):
+    bot.reply_to(message, "Selamat datang! Silakan masukkan gejala-gejala penyakit yang Anda alami.")
+
+# Handler untuk semua pesan selain command "/start"
+@bot.message_handler(func=lambda message: True)
+def handle_message(message):
+    input_gejala = message.text.split(", ")
+    solusi = forward_chaining(input_gejala)
+    hasil = tampilkan_hasil(solusi)
+    bot.reply_to(message, hasil)
 
 # Menjalankan bot
 bot.polling()

@@ -1,0 +1,73 @@
+from telebot import *
+import re
+import random
+import telebot
+
+api = '5994491197:AAFEhWxSNOSGs8jOTEcZf4-hqnvRvKsjPdE'
+bot = TeleBot(api)
+
+
+# Basis pengetahuan
+basis_pengetahuan = {
+    'Pusing': {
+        'Depresi': 0.8,
+        'OCD': 0.2,
+    },
+    'Panas': {
+        'OCD': 1,
+        # 'Depresi': 0.3,
+    },
+    'Sahur' : {
+        'Depresi' : 0.6,
+        'OCD' : 0.4,
+    },
+    'Hehe' : {
+        'OCD' : 1,
+    }
+}
+
+# Aturan inferensi
+aturan_inferensi = {
+    'Depresi': ['Pusing', 'Sahur'],
+    'OCD': ['Pusing', 'Panas', 'Sahur', 'Hehe'],
+    # 'Penyakit Z': ['Gejala B', 'Gejala C'],
+}
+
+
+# Fungsi forward chaining
+def forward_chaining(input_gejala):
+    solusi = {}
+    for gejala in input_gejala:
+        if gejala in basis_pengetahuan:
+            for penyakit, bobot in basis_pengetahuan[gejala].items():
+                if penyakit not in solusi:
+                    solusi[penyakit] = 0
+                solusi[penyakit] += bobot
+    for penyakit, daftar_gejala in aturan_inferensi.items():
+        if all(gejala in input_gejala for gejala in daftar_gejala) and penyakit not in solusi:
+            solusi[penyakit] = 1
+    return solusi
+
+# Fungsi untuk menampilkan hasil deteksi penyakit
+def tampilkan_hasil(solusi):
+    if not solusi:
+        return "Tidak ada penyakit yang terdeteksi."
+    hasil = "Penyakit yang terdeteksi:\n"
+    for penyakit, bobot in solusi.items():
+        if bobot == 1:
+            hasil += f"- {penyakit}\n"
+    return hasil
+
+@bot.message_handler(commands=['start'])
+def send_welcome(message):
+    bot.reply_to(message, "Selamat datang! Silakan masukkan gejala-gejala penyakit yang Anda alami.")
+    
+@bot.message_handler(func=lambda message: True)
+def handle_message(message):
+    input_gejala = message.text.split()
+    solusi = forward_chaining(input_gejala)
+    hasil = tampilkan_hasil(solusi)
+    bot.reply_to(message, hasil)
+
+# Menjalankan bot
+bot.polling()
