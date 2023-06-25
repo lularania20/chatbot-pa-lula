@@ -3,7 +3,10 @@ import re
 import random
 import nltk
 from nltk.tokenize import word_tokenize
-from nltk.stem import PorterStemmer
+from nltk.stem import WordNetLemmatizer
+from gejala import gejala_dict
+from basis_pengetahuan import basis_pengetahuan
+from aturan_inferensi import aturan_inferensi
 
 # API key Telegram Bot
 api_key = '5994491197:AAFEhWxSNOSGs8jOTEcZf4-hqnvRvKsjPdE'
@@ -11,60 +14,44 @@ api_key = '5994491197:AAFEhWxSNOSGs8jOTEcZf4-hqnvRvKsjPdE'
 # Membuat instance TeleBot
 bot = TeleBot(api_key)
 
-# Basis pengetahuan
-basis_pengetahuan = {
-    'muntah': {
-        'Bulimia Nervosa': 0.7,
-        'Anoreksia Nervosa': 0.3,
-    },
-    'kelaparan': {
-        'Bulimia Nervosa': 0.2,
-        'Anoreksia Nervosa': 0.8,
-    },
-    'menstruasi': {
-        'Bulimia Nervosa': 0.4,
-        'Anoreksia Nervosa': 0.6,
-    },
-    'makan berlebihan' : {
-        'Bulimia Nervosa': 0.9,
-        'Anoreksia Nervosa': 0.1,
-    },
-    'diare' : {
-        'Bulimia Nervosa': 0.3,
-        'Anoreksia Nervosa': 0.7,
-    }
-}
+# Fungsi Tokenize
+def tokenize(text, gejala_dict):
+    # Mengubah tanda baca koma dan titik menjadi spasi
+    text = re.sub(r'[,.]', ' ', text)
 
-# Aturan inferensi
-aturan_inferensi = {
-    'Bulimia Nervosa': ['muntah', 'kelaparan', 'menstruasi', 'makan berlebihan'],
-    'Anoreksia Nervosa': ['muntah', 'kelaparan', 'menstruasi', 'diare', 'makan berlebihan'],
-}
+    # Mengubah teks menjadi huruf kecil
+    text = text.lower()
 
-#Fungsi Tokenize
-def tokenize(text):
-    # Menggunakan regular expression untuk mengekstrak gejala sebagai satu token
-    gejala_pattern = r"(?i)\b(makan berlebihan)\b"  # Tambahkan gejala lain yang perlu diidentifikasi di sini
-    gejala_matches = re.findall(gejala_pattern, text)
-    
-    # Menghapus gejala dari teks untuk memperoleh token lainnya
-    text_without_gejala = re.sub(gejala_pattern, '', text)
-    
-    # Tokenisasi menggunakan word_tokenize dari NLTK untuk token-token lainnya
-    tokens = word_tokenize(text_without_gejala)
-    
-    # Menggabungkan token gejala dengan token-token lainnya
-    tokens.extend(gejala_matches)
-    
-    return tokens
+    # Tokenisasi menggunakan word_tokenize dari NLTK
+    tokens = word_tokenize(text)
 
+    # Menggabungkan gejala yang terdaftar dalam gejala_dict menjadi satu token
+    combined_tokens = []
+    i = 0
+    while i < len(tokens):
+        if tokens[i] in gejala_dict:
+            combined_tokens.append(gejala_dict[tokens[i]])
+            i += 1
+        else:
+            # Memeriksa apakah ada kombinasi gejala lebih dari dua kata yang terdaftar dalam gejala_dict
+            found = False
+            for j in range(3, 0, -1):
+                if i + j <= len(tokens) and ' '.join(tokens[i:i+j]) in gejala_dict:
+                    combined_tokens.append(gejala_dict[' '.join(tokens[i:i+j])])
+                    i += j
+                    found = True
+                    break
+            if not found:
+                combined_tokens.append(tokens[i])
+                i += 1
 
-# Fungsi stemming
-def stemming(input_gejala):
-    stemmer = PorterStemmer()
-    stemmed_gejala = [stemmer.stem(gejala) for gejala in input_gejala]
-    return stemmed_gejala
+    return combined_tokens
 
+# Fungsi lemmatisasi
+def lemmatize(input_gejala):
+    lemmatizer = WordNetLemmatizer()
+    lemmatized_gejala = [lemmatizer.lemmatize(gejala) for gejala in input_gejala]
+    return lemmatized_gejala
 
 # Fungsi forward chaining
 def forward_chaining(input_gejala):
@@ -83,8 +70,15 @@ def forward_chaining(input_gejala):
                     if penyakit in solusi:
                         solusi[penyakit] += bobot
 
-    return solusi
+            # Menambahkan bobot 1 untuk gejala yang hanya masuk di dalam aturan inferensi
+            for penyakit, daftar_gejala in aturan_inferensi.items():
+                if penyakit not in solusi and gejala in daftar_gejala:
+                    if penyakit not in solusi:
+                        solusi[penyakit] = 1
+                    else:
+                        solusi[penyakit] += 1
 
+    return solusi
 
 # Fungsi untuk menampilkan hasil deteksi penyakit
 def tampilkan_hasil(solusi):
@@ -112,9 +106,9 @@ def send_welcome(message):
 # Handler untuk semua pesan selain command "/start"
 @bot.message_handler(func=lambda message: True)
 def handle_message(message):
-    input_gejala = tokenize(message.text)  # Tokenisasi menggunakan fungsi word_tokenize dari NLTK
+    input_gejala = tokenize(message.text, gejala_dict)  # Tokenisasi menggunakan fungsi word_tokenize dari NLTK
     input_gejala = [gejala.lower() for gejala in input_gejala]  # Menerapkan case folding pada seluruh inputan
-    input_gejala = stemming(input_gejala)  # Melakukan stemming pada kata-kata gejala
+    input_gejala = lemmatize(input_gejala)  # Melakukan lemmatisasi pada kata-kata gejala
     solusi = forward_chaining(input_gejala)
     hasil = tampilkan_hasil(solusi)
     bot.reply_to(message, hasil)
