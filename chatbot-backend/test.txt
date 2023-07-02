@@ -1,0 +1,82 @@
+from telebot import TeleBot
+import re
+import random
+import nltk
+from nltk.tokenize import word_tokenize
+from nltk.stem import PorterStemmer
+from nltk.corpus import stopwords
+
+# API key Telegram Bot
+api_key = 'YOUR_API_KEY'
+
+# Inisialisasi Stemmer dan Stopwords
+stemmer = PorterStemmer()
+stop_words = set(stopwords.words('indonesian'))
+
+# Membuat instance TeleBot
+bot = TeleBot(api_key)
+
+# Fungsi Tokenisasi
+def tokenize(text):
+    text = re.sub(r'[,.]', ' ', text)
+    tokens = word_tokenize(text)
+    return tokens
+
+# Fungsi Filtering Stop Words
+def filter_stop_words(tokens):
+    filtered_tokens = [token for token in tokens if token not in stop_words]
+    return filtered_tokens
+
+# Fungsi Stemming
+def stem(tokens):
+    stemmed_tokens = [stemmer.stem(token) for token in tokens]
+    return stemmed_tokens
+
+# Fungsi forward chaining
+def forward_chaining(input_gejala):
+    solusi = {}
+    # Logika forward chaining
+    # ...
+
+    return solusi
+
+# Fungsi untuk menampilkan hasil deteksi penyakit
+def tampilkan_hasil(solusi):
+    if not solusi:
+        return "Tidak ada penyakit yang terdeteksi."
+    else:
+        penyakit_terdeteksi = next(iter(solusi))
+        return f"Penyakit yang terdeteksi: {penyakit_terdeteksi}"
+
+# Handler untuk command "/start"
+@bot.message_handler(commands=['start'])
+def send_welcome(message):
+    bot.reply_to(message, "Selamat datang! Silakan masukkan gejala-gejala penyakit yang Anda alami.")
+
+# Handler untuk semua pesan selain command "/start"
+@bot.message_handler(func=lambda message: True)
+def handle_message(message):
+    input_gejala = message.text.lower()
+
+    # Tokenisasi
+    tokens = tokenize(input_gejala)
+    bot.reply_to(message, f"Tokenisasi: {tokens}")
+
+    # Filtering Stop Words
+    filtered_tokens = filter_stop_words(tokens)
+    bot.reply_to(message, f"Filtering Stop Words: {filtered_tokens}")
+
+    # Stemming
+    stemmed_tokens = stem(filtered_tokens)
+    bot.reply_to(message, f"Stemming: {stemmed_tokens}")
+
+    # Forward Chaining
+    solusi = forward_chaining(stemmed_tokens)
+    bot.reply_to(message, f"Solusi: {solusi}")
+
+    # Hasil
+    hasil = tampilkan_hasil(solusi)
+    bot.reply_to(message, hasil)
+
+# Menjalankan bot
+bot.polling()

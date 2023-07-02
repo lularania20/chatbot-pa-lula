@@ -5,6 +5,6 @@ aturan_inferensi = {
     'PTSD':['takut','masa lalu menakutkan','mimpi buruk','trauma','traumatis','sulit tidur','sulit berkonsentrasi'],
     # 'Gangguan Kepribadian Paranoid':[],
     # 'Gangguan Kepribadian Narsistik':[],
-    'Bulimia Nervosa': ['muntah','gangguan siklus menstruasi','kelaparan','menyakiti diri sendiri','gemuk','makan berlebihan','sakit tenggorokan','pembengkakan wajah','pembengkakan kelenjar di rahang'],
+    'Bulimia Nervosa': ['muntah','ganggu siklus menstruasi','lapar','sakit diri sendiri','gemuk','makan lebih','sakit tenggorok','bengkak wajah','bengkak kelenjar rahang'],
     'Anoreksia Nervosa': ['muntah','gangguan siklus menstruasi','kelaparan','penurunan berat badan','diare','melakukan diet','kulit kering','rambut rontok','lemas','sangat kurus'],
 }
