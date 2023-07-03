@@ -62,18 +62,6 @@ def filter_stop_words(tokens):
     return filtered_tokens
 
 # Fungsi Stemming
-# def stemming(tokens):
-#     stemmed_tokens = []
-#     for token in tokens:
-#         if token in gejala_dict.keys():
-#             stemmed_tokens.append(token)
-#         else:
-#             stemmed_token = stemmer.stem(token)
-#             if stemmed_token in gejala_dict.keys():
-#                 stemmed_tokens.append(stemmed_token)
-#             else:
-#                 stemmed_tokens.append(token)
-#     return stemmed_tokens
 def stemming(tokens):
     stemmer = StemmerFactory().create_stemmer()
     stemmed_tokens = [stemmer.stem(token) for token in tokens]
@@ -131,26 +119,61 @@ def forward_chaining(input_gejala):
 # Fungsi untuk menampilkan hasil deteksi penyakit
 def tampilkan_hasil(solusi):
     if not solusi:
-        return "Tidak ada penyakit yang terdeteksi."
+        return "Tidak ada penyakit yang terdeteksi. Silahkan berikan gejala yang lain, yang anda alami."
     else:
         penyakit_terdeteksi = max(solusi, key=solusi.get)
+        deskripsi_penyakit = "Deskripsi Penyakit:\n"
+        if penyakit_terdeteksi == 'Depresi':
+            deskripsi_penyakit += "Depresi adalah gangguan mental yang ditandai oleh perasaan sedih yang berkepanjangan, kehilangan minat atau kegairahan terhadap aktivitas yang biasanya dinikmati, dan penurunan energi atau kelelahan."
+        elif penyakit_terdeteksi == 'Gangguan Kecemasan':
+            deskripsi_penyakit += "Gangguan kecemasan adalah kondisi mental yang ditandai oleh kecemasan yang berlebihan, persisten, dan mengganggu dalam kehidupan sehari-hari."
+        elif penyakit_terdeteksi == 'OCD':
+            deskripsi_penyakit += "Obsessive-Compulsive Disorder (OCD) adalah gangguan kecemasan yang ditandai oleh pola pikir obsesif yang mengganggu dan tindakan kompulsif yang dilakukan untuk mengurangi kecemasan atau ketidaknyamanan yang muncul akibat obsesi tersebut."
+        elif penyakit_terdeteksi == 'PTSD':
+            deskripsi_penyakit += "PTSD (Post-Traumatic Stress Disorder) adalah gangguan mental yang terjadi setelah seseorang mengalami atau menyaksikan peristiwa traumatis yang mengancam jiwa atau menyakitkan secara emosional. Peristiwa traumatis tersebut bisa berupa kecelakaan serius, bencana alam, kekerasan fisik atau seksual, peperangan, atau pengalaman traumatis lainnya."
+        elif penyakit_terdeteksi == 'Gangguan Kepribadian Paranoid':
+            deskripsi_penyakit += "Gangguan Kepribadian Paranoid adalah jenis gangguan kepribadian yang ditandai oleh pola pikir dan perilaku yang berlebihan atau yang tidak beralasan yang mencerminkan ketidakpercayaan dan kecurigaan terhadap orang lain. Individu dengan gangguan kepribadian paranoid cenderung merasa dicurigai, didorong oleh keyakinan yang tidak beralasan bahwa orang-orang di sekitarnya memiliki motif tersembunyi atau berniat jahat terhadap mereka."
+        elif penyakit_terdeteksi == 'Gangguan Kepribadian Narsistik':
+            deskripsi_penyakit += "Gangguan Kepribadian Narsistik adalah jenis gangguan kepribadian yang ditandai oleh pola perilaku yang berlebihan dan terus-menerus memperlihatkan kebutuhan yang berlebihan akan pengakuan, keagungan, dan perhatian yang berlebihan terhadap diri sendiri. Individu dengan gangguan kepribadian narsistik cenderung memiliki pandangan yang melebih-lebihkan tentang kemampuan dan prestasi mereka sendiri, seringkali merasa lebih penting daripada orang lain, dan mengharapkan perlakuan istimewa."
+        elif penyakit_terdeteksi == 'Bulimia Nervosa':
+            deskripsi_penyakit += "Bulimia Nervosa adalah gangguan makan yang ditandai oleh pola makan yang tidak terkendali secara berulang (makan berlebihan) diikuti oleh perilaku kompensasi yang tidak sehat. Orang yang mengalami bulimia nervosa seringkali merasa kehilangan kendali saat makan dan berusaha untuk mengendalikan berat badan mereka dengan cara yang tidak sehat, seperti memuntahkan makanan atau menggunakan obat pencahar."
+        elif penyakit_terdeteksi == 'Anoreksia Nervosa':
+            deskripsi_penyakit += "Anoreksia Nervosa adalah gangguan makan yang ditandai oleh perasaan takut yang kuat terhadap berat badan dan bentuk tubuh yang menyebabkan perilaku makan yang tidak sehat. Orang yang mengalami anoreksia nervosa cenderung memiliki persepsi yang tidak realistis tentang tubuh mereka dan berusaha untuk menjaga berat badan mereka serendah mungkin dengan cara yang tidak sehat."
         gejala_umum = "Gejala Umum:\n"
         if penyakit_terdeteksi == 'Depresi':
-            gejala_umum += "rasa bersalah, mudah lelah, kurang fokus, sulit tidur, menyakiti diri sendiri, perasaan tidak menentu, murung, tidak percaya diri, tidak berguna, masa depan suram, ingin bunuh diri, perubahan nafsu makan"
+            gejala_umum += "1. merasa bersalah, \n 2. mudah lelah, \n 3. kurang fokus, \n 4. sulit tidur, \n 5.menyakiti diri sendiri, \n 6.perasaan tidak menentu, \n 7. murung, \n 8. tidak percaya diri, \n 9. tidak berguna, \n 10. masa depan suram, \n 11. ingin bunuh diri, \n 12. perubahan nafsu makan"
         elif penyakit_terdeteksi == 'Gangguan Kecemasan':
-            gejala_umum += "kurang fokus, cemas, takut, sulit tidur, mudah lelah, mudah tersinggung, gelisah, sulit mengambil keputusan, sakit kepala, gemetaran, keringat berlebihan, mual, sakit perut"
+            gejala_umum += "1. kurang fokus, \n 2. cemas, \n 3. takut, \n 4. sulit tidur, \n 5. mudah lelah, \n 6. mudah tersinggung, \n 7. gelisah, \n 8. sulit mengambil keputusan, \n 9. sakit kepala, \n 10. gemetaran, \n 11. keringat berlebihan, \n 12. mual, \n 13. sakit perut"
         elif penyakit_terdeteksi == 'OCD':
-            gejala_umum += "rasa bersalah, cemas, waspada berlebihan, pengucapan kata yang tidak berarti, pengulangan kata, pengulangan tindakan, serangan panik, memeriksa sesuatu berulang, mempermasalahkan kerapian, mempermasalahkan keteraturan"
+            gejala_umum += "1. rasa bersalah \n2. cemas \n3. waspada berlebihan \n4. pengucapan kata yang tidak berarti \n5. pengulangan kata \n6. pengulangan tindakan \n7. serangan panik \n8. memeriksa sesuatu berulang \n9. mempermasalahkan kerapian \n10. mempermasalahkan keteraturan"
+        elif penyakit_terdeteksi == 'PTSD':
+            gejala_umum += "1. ingatan kejadian masa lalu yang menakutkan \n2. sering bermimpi buruk \n3. menghindari tempat atau hal yang berkaitan dengan kejadian traumatis \n4. sulit untuk tidur \n5. takut \n6. sulit berkonsentrasi"
+        elif penyakit_terdeteksi == 'Gangguan Kepribadian Paranoid':
+            gejala_umum += "1. meragukan komitmen \n2. tidak percaya dengan orang lain \n3. tidak mudah memaafkan \n4. sangat sensitif terhadap kritikan \n5. selalu merasa benar \n6. keras kepala"
+        elif penyakit_terdeteksi == 'Gangguan Kepribadian Narsistik':
+            gejala_umum += "1. merasa lebih baik dari orang lain \n2. membutuhkan banyak pujian \n3. sibuk menghayal \n4. merasa istimewa \n5. tidak memiliki empati dan kepedulian \n6. iri \n7. sombong"
         elif penyakit_terdeteksi == 'Bulimia Nervosa':
-            gejala_umum += "makan berlebihan, menyakiti diri sendiri, muntah, kelaparan, Sakit tenggorokan, pembengkakan pada wajah atau kelenjar di rahang, gangguan siklus, menstruasi, gemuk"
+            gejala_umum += "1. makan berlebihan \n2. menyakiti diri sendiri \n3. muntah \n4. kelaparan \n5. sakit tenggorokan \n6. pembengkakan pada wajah atau kelenjar di rahang \n7. gangguan siklus \n8. menstruasi \n9. gemuk \n10. mengkonsumsi obat pencahar"
         elif penyakit_terdeteksi == 'Anoreksia Nervosa':
-            gejala_umum += "penurunan berat badan, muntah, diare, melakukan diet, kulit kering, rambut rontok, lemas, gangguan siklus menstruasi, sangat kurus"
+            gejala_umum += "1. penurunan berat badan \n2. muntah \n3. diare \n4. melakukan diet \n5. kulit kering \n6. rambut rontok \n7. lemas \n8. gangguan siklus menstruasi \n9. sangat kurus"
         penanganan = "Penanganan:\n"
-        if penyakit_terdeteksi == 'Bulimia Nervosa':
-            penanganan += "Konseling dan terapi."
+        if penyakit_terdeteksi == 'Depresi':
+            penanganan += "lebih banyak melakukan aktifitas aktifitas positif, konsumsi makan makanan yang sehat, tidur yang cukup, lebih menerima dan menghadapi permasalahan yang ada, melakukan hal hal yang menyenangkan"
+        elif penyakit_terdeteksi == 'Gangguan Kecemasan':
+            penanganan += "menjaga kebugaran tubuh dengan melakukan olahraga teratur, melakukan relaksasi atau merilekskan tubuh, menghindari kafein, menghindari rokok, tidak mengkonsumsi minuman keras atau minuman beralkohol."
+        elif penyakit_terdeteksi == 'OCD':
+            penanganan += "kelompok dukungan, terapi perilaku kognitif, terapi aversi, psikoedukasi, terapi perilaku, emotif rasional, pajanan dan pencegahan respons, psikoterapi, desensitisasi sistematik, psikoterapi kelompok"
+        elif penyakit_terdeteksi == 'PTSD':
+            penanganan += "terapi perilaku kognitif, pajanan dan pencegahan respons, pemrosesan ulang dan desensitisasi gerakan mata, terapi paparan"
+        elif penyakit_terdeteksi == 'Gangguan Kepribadian Paranoid':
+            penanganan += "terapi perilaku kognitif, terapi psikodinamik, terapi interpersonal."
+        elif penyakit_terdeteksi == 'Gangguan Kepribadian Narsistik':
+            penanganan += "terapi bicara, terapi perilaku kognitif, terapi psikodinamik, terapi interpersonal"
+        elif penyakit_terdeteksi == 'Bulimia Nervosa':
+            penanganan += " kelompok dukungan, terapi perilaku kognitif, terapi kognitif, terapi perilaku, dialektis, konseling psikologis, psikoedukasi, terapi keluarga, terapi perilaku, psikoterapi."
         elif penyakit_terdeteksi == 'Anoreksia Nervosa':
-            penanganan += "Terapi perilaku kognitif."
-        return f"Penyakit yang terdeteksi: {penyakit_terdeteksi}\n\n{gejala_umum}\n\n{penanganan}"
+            penanganan += "kelompok dukungan, terapi perilaku kognitif, terapi perilaku dialektis, konseling psikologis, psikoterapi interpersonal, terapi keluarga, terapi perilaku, psikoterapi, psikoterapi singkat, psikoterapi kelompok"
+        return f"Penyakit yang terdeteksi: {penyakit_terdeteksi}\n\n{deskripsi_penyakit}\n\n{gejala_umum}\n\n{penanganan}"
 
 # Handler untuk command "/start"
 @bot.message_handler(commands=['start'])

@@ -11,7 +11,7 @@ gejala_dict = {
     "lapar": "lapar",
     "keras kepala": "keras kepala",
     "keringat lebih": "keringat lebih",
-    #batas
+    "obsesi": "obsesi",
     "waspada lebih": "waspada lebih",
     "kulit kering": "kulit kering",
     "kurang fokus": "kurang fokus",
@@ -40,14 +40,14 @@ gejala_dict = {
     "ulang kata": "ulang kata",
     "ulang tindakan": "ulang tindakan",
     "turun berat badan": "turun berat badan",
-    "perasaan tidak menentu": "perasaan tidak menentu",
+    "rasa tidak tentu": "rasa tidak tentu",
     "ubah nafsu makan": "ubah nafsu makan",
     "rambut rontok": "rambut rontok",
-    "rasa bersalah": "rasa bersalah",
+    "rasa salah": "rasa salah",
     "sakit kepala": "sakit kepala",
     "sakit perut": "sakit perut",
     "sakit tenggorok": "sakit tenggorok",
-    "sangat kurus": "sangat kurus",
+    "kurus": "kurus",
     "sensitif kritik": "sensitif kritik",
     "merasa benar": "merasa benar",
     "panik": "panik",
@@ -55,15 +55,17 @@ gejala_dict = {
     "khayal": "khayal",
     "sombong": "sombong",
     "sulit konsentrasi": "sulit konsentrasi",
+    "tidak konsentrasi" : "tidak konsentrasi",
     "sulit ambil putus": "sulit ambil putus",
     "sulit tidur": "sulit tidur",
     "takut": "takut",
-    "tidak berguna": "tidak berguna",
+    "tidak guna": "tidak guna",
     "tidak empati": "tidak empati",
     "tidak peduli": "tidak peduli",
     "tidak mudah maaf": "tidak mudah maaf",
     "tidak percaya orang lain": "tidak percaya orang lain",
-    "tidak percaya diri": "tidak percaya diri"
+    "tidak percaya diri": "tidak percaya diri",
+    "obat cahar" : "obat cahar"
 }
 
 gejala_dict = dict(sorted(gejala_dict.items(), key=lambda x: len(x[0]), reverse=True))
