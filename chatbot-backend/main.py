@@ -11,57 +11,40 @@ from gejala import gejala_dict
 from basis_pengetahuan import basis_pengetahuan
 from aturan_inferensi import aturan_inferensi
 
-# API key Telegram Bot
 api_key = '5994491197:AAFEhWxSNOSGs8jOTEcZf4-hqnvRvKsjPdE'
-
-# Inisialisasi Stemmer dan Stopwords
 stemmer = PorterStemmer()
 nltk_stopwords = set(stopwords.words('indonesian'))
-
-# Membuat instance TeleBot
 bot = TeleBot(api_key)
 
-# Fungsi Case Folding
 def case_folding(text):
     return text.lower()
 
-# Fungsi Tokenisasi
 def tokenize(text):
     text = re.sub(r'[,.]', ' ', text)
     tokens = word_tokenize(text)
     return tokens
 
-# Get the absolute path of the stopwords.txt file
 stopwords_path = os.path.join(os.path.dirname(__file__), 'stopwords.txt')
 
 def filter_stop_words(tokens):
     filtered_tokens = []
     with open(stopwords_path, 'r') as file:
         stopwords = [line.strip() for line in file]
-    
+
     for token in tokens:
-        # Mengecek apakah token ada dalam stopwords
         if token in stopwords:
             continue
-        
-        # Membuat n-gram dari token
         token_ngrams = [' '.join(gram) for gram in list(ngrams(token.split(), 2))]
-
-        # Memeriksa apakah ada n-gram yang ada dalam gejala_dict
         found = False
         for ngram in token_ngrams:
             if ngram in gejala_dict:
                 filtered_tokens.append(ngram)
                 found = True
                 break
-
-        # Jika tidak ada n-gram yang ada dalam gejala_dict, tambahkan token ke filtered_tokens
         if not found:
             filtered_tokens.append(token)
-
     return filtered_tokens
 
-# Fungsi Stemming
 def stemming(tokens):
     stemmer = StemmerFactory().create_stemmer()
     stemmed_tokens = [stemmer.stem(token) for token in tokens]
@@ -87,58 +70,28 @@ def find_keyword(tokens):
         i += 1
     return keywords
 
-# Fungsi untuk menanyakan gejala lain yang masih berhubungan
-def tanyakan_gejala_lain(penyakit_terdeteksi, input_gejala, gejala_tanya):
-    jawaban = input_gejala.lower()
-    if jawaban == "ya":
-        # Tambahkan gejala yang ditanya pengguna ke dalam array input_gejala
-        input_gejala.append(gejala_tanya)
-        # Jalankan ulang forward chaining dengan gejala yang telah ditambahkan
-        solusi = forward_chaining(input_gejala)
-        return solusi
-    elif jawaban == "tidak":
-        # Tanyakan gejala lain yang masih berhubungan dengan penyakit yang sama
-        pertanyaan = "Apakah Anda mengalami gejala lain yang masih berhubungan dengan penyakit ini? (ya/tidak)"
-        return pertanyaan
-    else:
-        return "Mohon jawab 'ya' atau 'tidak'."
-
-# Fungsi forward chaining yang disederhanakan
-# import json
-
-# def forward_chaining(input_gejala):
-
-#     hasil_diagnosa = {}
-
-#     for penyakit, gejala_penyakit in aturan_inferensi.items():
-#         jumlah_gejala_terpilih = len(set(input_gejala) & set(gejala_penyakit))
-#         peluang = (jumlah_gejala_terpilih / len(gejala_penyakit)) * 100
-
-#         hasil_diagnosa[penyakit] = peluang
-
-#     return hasil_diagnosa
-
 def forward_chaining(input_gejala):
-
     hasil_diagnosa = {}
 
     for penyakit, gejala_penyakit in aturan_inferensi.items():
+        # Hitung jumlah gejala terpilih yang baru ditambahkan oleh pengguna
         jumlah_gejala_terpilih = len(set(input_gejala) & set(gejala_penyakit))
-        peluang = (jumlah_gejala_terpilih / len(gejala_dict)) * 100
+
+        # Hitung peluang dengan mempertimbangkan gejala baru
+        total_gejala_penyakit = len(gejala_penyakit)
+        peluang = (jumlah_gejala_terpilih / total_gejala_penyakit) * 100
+
         hasil_diagnosa[penyakit] = {
             'Peluang': f'{peluang:.2f}%',
-            'Gejala penyakit yang diinputkan user': [gejala for gejala in input_gejala if gejala in gejala_penyakit],
+            'Gejala penyakit yang diinputkan user': list(set(input_gejala) & set(gejala_penyakit)),
             'Total gejala': jumlah_gejala_terpilih
         }
 
     return hasil_diagnosa
-        
-# Fungsi untuk menampilkan hasil deteksi penyakit
+
 def tampilkan_hasil(hasil_diagnosa):
     if not hasil_diagnosa:
         return "Tidak ada penyakit yang terdeteksi. Silahkan berikan gejala yang lain, yang anda alami."
-    
-     # Memilih penyakit dengan peluang tertinggi
     penyakit_terdeteksi = max(hasil_diagnosa, key=lambda x: float(hasil_diagnosa[x]['Peluang'][:-1]))
     deskripsi_penyakit = "Deskripsi Penyakit:\n"
     if penyakit_terdeteksi == 'Depresi':
@@ -188,86 +141,233 @@ def tampilkan_hasil(hasil_diagnosa):
     elif penyakit_terdeteksi == 'Gangguan Kepribadian Narsistik':
         penanganan += "terapi bicara, terapi perilaku kognitif, terapi psikodinamik, terapi interpersonal"
     elif penyakit_terdeteksi == 'Bulimia Nervosa':
-        penanganan += " kelompok dukungan, terapi perilaku kognitif, terapi kognitif, terapi perilaku, dialektis, konseling psikologis, psikoedukasi, terapi keluarga, terapi perilaku, psikoterapi."
+        penanganan += "kelompok dukungan, terapi perilaku kognitif, terapi kognitif, terapi perilaku, dialektis, konseling psikologis, psikoedukasi, terapi keluarga, terapi perilaku, psikoterapi."
     elif penyakit_terdeteksi == 'Anoreksia Nervosa':
         penanganan += "kelompok dukungan, terapi perilaku kognitif, terapi perilaku dialektis, konseling psikologis, psikoterapi interpersonal, terapi keluarga, terapi perilaku, psikoterapi, psikoterapi singkat, psikoterapi kelompok"
-    # Menggabungkan semua informasi ke dalam satu teks
-    hasil_diagnosa_text = f"Penyakit yang terdeteksi: {penyakit_terdeteksi}\n\n{deskripsi_penyakit}\n\n{gejala_umum}\n\n{penanganan}"
-    
-    return hasil_diagnosa_text
-        # else:
-        #         # Jika terdeteksi lebih dari satu penyakit, tanyakan gejala lebih lanjut
-        #             return "Sistem mendeteksi beberapa penyakit, harap berikan gejala lebih lanjut untuk mempersempit diagnosis."
 
-@bot.message_handler(func=lambda message: True)
-def handle_message(message):
-    input_gejala = message.text
-
-    # Cek jika pesan adalah '/start', maka tidak perlu menganalisis
-    if input_gejala == '/start':
-        bot.reply_to(message, "Halo! Saya adalah bot analisis gejala penyakit. Silakan berikan gejala yang Anda alami.")
-        return  # Keluar dari fungsi jika pesan adalah '/start'
-      # Cek apakah pesan kosong atau hanya mengandung whitespace
-    if not input_gejala.strip():
-        bot.reply_to(message, "Mohon berikan gejala yang valid. Pesan tidak boleh kosong.")
-        return  # Keluar dari fungsi jika pesan kosong
-
+    return f"Penyakit yang terdeteksi: {penyakit_terdeteksi}\n" \
+           f"Peluang: {hasil_diagnosa[penyakit_terdeteksi]['Peluang']}\n\n" \
+           f"{deskripsi_penyakit}\n" \
+           f"{gejala_umum}\n" \
+           f"{penanganan}\n\n" \
+           f"Apabila presentase diagnosis anda dibawah 80%, anda harus menghubungi untuk menanyakan hasil diagnosis lebih lanjut kepada ahli psikolog atau konseling di PENS."
+           
+def text_mining(input_text):
     # Case Folding
-    input_gejala = case_folding(input_gejala)
-    print("Case Folding:", input_gejala)
+    input_gejala = case_folding(input_text)
 
     # Tokenisasi
     tokens = tokenize(input_gejala)
-    print("Tokenisasi:", tokens)
 
     # Filtering Stop Words
     filtered_tokens = filter_stop_words(tokens)
-    print("Filtering:", filtered_tokens)
 
     # Stemming
     stemmed_tokens = stemming(filtered_tokens)
-    print("Stemming:", stemmed_tokens)
 
     # Pencarian Keyword
     keywords = find_keyword(stemmed_tokens)
-    print("Find Keywords:", keywords)
 
-    # Gabungkan semua tahap ke dalam satu pesan
-    output_message = f"Case Folding: {input_gejala}\n\n" \
-                     f"Tokenisasi: {tokens}\n\n" \
-                     f"Filtering: {filtered_tokens}\n\n" \
-                     f"Stemming: {stemmed_tokens}\n\n" \
-                     f"Find Keywords: {keywords}"
+    return keywords
 
-    bot.send_message(message.chat.id, output_message)
+# Tambahkan variabel global untuk menyimpan gejala sebelumnya
+penyakit_terdeteksi = ""
+gejala_tanya = ""
+gejala_sebelumnya = []
 
-    # Memanggil fungsi olah_gejala dengan argumen yang benar
-    hasil_diagnosa = forward_chaining(keywords)
-    
-    response = "Hasil Diagnosa:\n"
-    for penyakit, info in hasil_diagnosa.items():
-        peluang = info['Peluang']
-        gejala_user = info['Gejala penyakit yang diinputkan user']
-        total_gejala = info['Total gejala']
+@bot.message_handler(func=lambda message: True)
+def handle_message(message):
+    global gejala_tanya
+    global penyakit_terdeteksi
+    global gejala_sebelumnya
 
-        response += f"Peluang terkena {penyakit}: {peluang}\n"
-        response += f"Gejala penyakit {penyakit} yang diinputkan user: {gejala_user}\n"
-        response += f"Total gejala {penyakit}: {total_gejala}\n\n"
-    
-    bot.reply_to(message, response)
-    
-    hasil_diagnosa = tampilkan_hasil(hasil_diagnosa)
-    bot.reply_to(message, hasil_diagnosa)
-    
-    # hasil = tampilkan_hasil(solusi)
+    if message.text == "/start":
+        gejala_tanya = ""
+        penyakit_terdeteksi = ""
+        gejala_sebelumnya = []  # Tambahkan inisialisasi gejala_sebelumnya
+        user_name = message.from_user.username  # Ambil nama pengguna Telegram
+        bot.reply_to(message, f"Halo, {user_name}! Selamat Datang di Chatbot Layanan Konseling Mahasiswa PENS. Saya akan membantu Anda mendiagnosa kondisi mental Anda. Silakan berikan gejala yang Anda alami.")
+    elif message.text == "/informasi":
+        user_name = message.from_user.username  # Ambil nama pengguna Telegram
+        reply_message = f"Halo, {user_name}! Selamat datang di Layanan Konseling Mahasiswa PENS. Kami di sini untuk membantu Anda mengatasi berbagai tantangan mental dan emosional yang mungkin Anda alami selama masa studi Anda di PENS."
 
-    # bot.reply_to(message, hasil)
-    
-    # # Hasil
-    # hasil = tampilkan_hasil(solusi)
+        reply_message += "\n\nLayanan Konseling PENS menawarkan dukungan emosional dan konseling profesional kepada semua mahasiswa. Apakah Anda menghadapi tekanan akademis, masalah pribadi, atau hanya butuh seseorang untuk diajak berbicara, kami di sini untuk membantu."
 
-    # bot.reply_to(message, penyakit_terdeteksi)
+        reply_message += "\n\nCara menggunakan layanan kami:"
+        reply_message += "\n1. Ketik '/start' untuk memulai konsultasi."
+        reply_message += "\n2. Berikan gejala atau ceritakan perasaan Anda."
+        reply_message += "\n3. Kami akan melakukan diagnosa dan memberikan saran atau dukungan sesuai kebutuhan Anda."
 
-# Menjalankan bot
-if __name__ == "__main__":
-    bot.polling()
+        reply_message += "\n\nIngatlah bahwa semua sesi konseling bersifat pribadi dan rahasia. Kami peduli dengan kesejahteraan mental Anda, dan kami siap membantu Anda. Jangan ragu untuk berbagi apa yang Anda rasakan."
+
+        reply_message += "\n\nTerima kasih telah menggunakan Layanan Konseling PENS. Jika Anda memiliki pertanyaan lebih lanjut, ketik '/bantuan'."
+
+        bot.reply_to(message, reply_message)
+    elif message.text == "/bantuan":
+        user_name = message.from_user.username  # Ambil nama pengguna Telegram
+        reply_message = f"Halo, {user_name}! Berikut adalah beberapa perintah yang dapat Anda gunakan untuk berinteraksi dengan Layanan Konseling Mahasiswa PENS:"
+
+        reply_message += "\n\n1. `/start`: Memulai sesi konsultasi untuk mendiagnosa kondisi mental Anda."
+        reply_message += "\n2. `/informasi`: Menyediakan informasi tentang Layanan Konseling PENS dan cara menggunakannya."
+        reply_message += "\n3. `/bantuan`: Menampilkan pesan bantuan ini."
+
+        reply_message += "\n\nIngat, kami di sini untuk membantu Anda. Jika Anda memiliki pertanyaan lebih lanjut atau membutuhkan dukungan tambahan, jangan ragu untuk berbicara dengan kami. Hubungi alamat email layanankonseling@pens.ac.id"
+
+        bot.reply_to(message, reply_message)
+    else:
+        gejala_sebelumnya.append(message.text)
+        
+        # Gabungkan semua gejala sebelumnya dengan gejala terbaru
+        semua_gejala = ' '.join(gejala_sebelumnya)
+        print("Semua Gejala:", semua_gejala)
+
+        # Gabungkan semua gejala sebelumnya dengan gejala terbaru
+        input_gejala = case_folding(semua_gejala)
+        print("Case Folding:", input_gejala)
+
+        # Tokenisasi
+        tokens = tokenize(input_gejala)
+        print("Tokenisasi:", tokens)
+
+        # Filtering Stop Words
+        filtered_tokens = filter_stop_words(tokens)
+        print("Filtering:", filtered_tokens)
+
+        # Stemming
+        stemmed_tokens = stemming(filtered_tokens)
+        print("Stemming:", stemmed_tokens)
+
+        # Pencarian Keyword
+        keywords = find_keyword(stemmed_tokens)
+        print("Find Keywords:", keywords)
+
+        # Masukkan ke dalam proses diagnosa
+        hasil_diagnosa = forward_chaining(keywords)
+
+        # Jika belum ada gejala yang unggul, atau masih dalam proses pengumpulan gejala
+        if not penyakit_terdeteksi or gejala_tanya:
+            
+            input_gejala = case_folding(input_gejala)
+            print("Case Folding:", input_gejala)
+
+            # Tokenisasi
+            tokens = tokenize(input_gejala)
+            print("Tokenisasi:", tokens)
+
+            # Filtering Stop Words
+            filtered_tokens = filter_stop_words(tokens)
+            print("Filtering:", filtered_tokens)
+
+            # Stemming
+            stemmed_tokens = stemming(filtered_tokens)
+            print("Stemming:", stemmed_tokens)
+
+            # Pencarian Keyword
+            keywords = find_keyword(stemmed_tokens)
+            print("Find Keywords:", keywords)
+
+            hasil_diagnosa = forward_chaining(keywords)
+
+            # Jika masih dalam proses pengumpulan gejala
+            if gejala_tanya:
+                if hasil_diagnosa and hasil_diagnosa.get(gejala_tanya) and hasil_diagnosa.get(penyakit_terdeteksi) and hasil_diagnosa[gejala_tanya]['Peluang'] == hasil_diagnosa[penyakit_terdeteksi]['Peluang']:
+                    # Jika peluang masih sama, tanyakan lagi apakah ada gejala lain
+                    bot.reply_to(message, f"Apakah Anda mengalami gejala lain yang masih berhubungan dengan penyakit ini? Jika tidak ada, maka sebutkan kembali gejala yang sering anda alami.")
+                else:
+                    # Jika peluang berbeda atau gejala_tanya tidak ada, tampilkan hasil
+                    response = "Hasil Diagnosa:\n"
+                    for penyakit, info in hasil_diagnosa.items():
+                        peluang = info['Peluang']
+                        gejala_user = info['Gejala penyakit yang diinputkan user']
+                        total_gejala = info['Total gejala']
+
+                        response += f"Peluang terkena {penyakit}: {peluang}\n"
+                        response += f"Gejala penyakit {penyakit} yang diinputkan user: {gejala_user}\n"
+                        response += f"Total gejala {penyakit}: {total_gejala}\n\n"
+
+                    # bot.reply_to(message, response)
+                    print(message, response)
+                    response = tampilkan_hasil(hasil_diagnosa)
+                    bot.reply_to(message, response)
+
+                    # Setelah menampilkan hasil, update penyakit_terdeteksi jika ditemukan
+                    penyakit_terdeteksi = max(hasil_diagnosa, key=lambda x: float(hasil_diagnosa[x]['Peluang'][:-1]))
+                    gejala_tanya = ""
+                    penyakit_terdeteksi = ""
+                    gejala_sebelumnya = []
+
+            else:
+                # Jika belum ada penyakit_terdeteksi, atau masih dalam proses pengumpulan gejala
+                highest_percentage = max(hasil_diagnosa.values(), key=lambda x: float(x['Peluang'][:-1]))['Peluang']
+                highest_percentage = float(highest_percentage[:-1])
+                
+                if highest_percentage == 0:
+                    bot.reply_to(message, "Gejala yang dimasukkan tidak valid atau tidak sesuai dengan penyakit apapun. Silakan periksa kembali gejala yang Anda berikan.")
+                elif highest_percentage in [float(info['Peluang'][:-1]) for info in hasil_diagnosa.values()]: 
+                    # Jika peluang masih sama, tanyakan lagi apakah ada gejala lain
+                    gejala_tanya = max(hasil_diagnosa, key=lambda x: float(hasil_diagnosa[x]['Peluang'][:-1]))
+                    bot.reply_to(message, f"Apakah Anda mengalami gejala lain yang masih berhubungan dengan penyakit ini? Jika tidak ada, maka sebutkan kembali gejala yang sering anda alami.")
+                else:
+                    # Jika peluang berbeda, tampilkan hasil
+                    response = "Hasil Diagnosa:\n"
+                    for penyakit, info in hasil_diagnosa.items():
+                        peluang = info['Peluang']
+                        gejala_user = info['Gejala penyakit yang diinputkan user']
+                        total_gejala = info['Total gejala']
+
+                        response += f"Peluang terkena {penyakit}: {peluang}\n"
+                        response += f"Gejala penyakit {penyakit} yang diinputkan user: {gejala_user}\n"
+                        response += f"Total gejala {penyakit}: {total_gejala}\n\n"
+
+                    # bot.reply_to(message, response)
+                    print(message, response)
+                    response = tampilkan_hasil(hasil_diagnosa)
+                    bot.reply_to(message, response)
+
+                    # Setelah menampilkan hasil, update penyakit_terdeteksi jika ditemukan
+                    penyakit_terdeteksi = max(hasil_diagnosa, key=lambda x: float(hasil_diagnosa[x]['Peluang'][:-1]))
+                    gejala_tanya = ""
+                    penyakit_terdeteksi = ""
+                    gejala_sebelumnya = []
+
+        else:
+            # Jika sudah ada hasil unggul, tampilkan hasil tanpa bertanya lagi
+            input_gejala = case_folding(input_gejala)
+            print("Case Folding:", input_gejala)
+
+            # Tokenisasi
+            tokens = tokenize(input_gejala)
+            print("Tokenisasi:", tokens)
+
+            # Filtering Stop Words
+            filtered_tokens = filter_stop_words(tokens)
+            print("Filtering:", filtered_tokens)
+
+            # Stemming
+            stemmed_tokens = stemming(filtered_tokens)
+            print("Stemming:", stemmed_tokens)
+
+            # Pencarian Keyword
+            keywords = find_keyword(stemmed_tokens)
+            print("Find Keywords:", keywords)
+            hasil_diagnosa = forward_chaining(keywords)
+            response = "Hasil Diagnosa:\n"
+            for penyakit, info in hasil_diagnosa.items():
+                peluang = info['Peluang']
+                gejala_user = info['Gejala penyakit yang diinputkan user']
+                total_gejala = info['Total gejala']
+
+                response += f"Peluang terkena {penyakit}: {peluang}\n"
+                response += f"Gejala penyakit {penyakit} yang diinputkan user: {gejala_user}\n"
+                response += f"Total gejala {penyakit}: {total_gejala}\n\n"
+
+            # bot.reply_to(message, response)
+            print(message, response)
+            response = tampilkan_hasil(hasil_diagnosa)
+            bot.reply_to(message, response)
+
+            gejala_tanya = ""
+            penyakit_terdeteksi = ""
+            gejala_sebelumnya = []
+
+bot.polling()
